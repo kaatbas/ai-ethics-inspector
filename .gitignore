@@ -46,3 +46,7 @@ htmlcov/
 # System
 .DS_Store
 Thumbs.db
+
+# Documentation - Keep only README
+*.md
+!README.md
