@@ -1,134 +1,133 @@
-# Project Documentation: AI Ethics Compliance Inspector
+# Proje Dokümantasyonu: Yapay Zeka Etik Uygunluk Denetçisi (AI Ethics Inspector)
 
-## 1. Executive Summary
-The **AI Ethics Compliance Inspector** is a post-hoc auditing tool designed to evaluate machine learning models (specifically **Random Forest Classifiers**) for adherence to ethical principles. It provides a quantitative framework for measuring **Fairness**, **Transparency**, and **Consistency** (Similarity).
+## 1. Yönetici Özeti ve Proje Amacı (Executive Summary)
 
-The system allows users to audit the **German Credit Dataset** or upload their own tabular data (`.csv`). It generates a comprehensive PDF report detailing compliance scores, enabling stakeholders to make data-driven decisions.
+Yapay zekâ (YZ) sistemlerinin hızla yaygınlaşmasıyla birlikte ortaya çıkan şeffaflık, adalet ve etik uygunluk sorunları, mevcut nitel etik denetim yaklaşımlarının yerine **nesnel ve ölçülebilir bir puanlama sistemi** ihtiyacını doğurmuştur.
+
+Bu proje, YZ sistemlerinin etik uygunluğunu değerlendirmek için **Çok Kriterli Karar Verme (ÇKKV)** prensiplerine dayalı, nicel bir **Etik Uygunluk Puanlama Modeli** geliştirmeyi amaçlamaktadır. Araştırma; Adalet, Şeffaflık, Benzerlik (Tutarlılık) ilkelerini bağımsız değişken olarak ele almakta ve bu nitel prensipleri somut, sayısallaştırılabilir metriklerle nicel kriterlere dönüştürmektedir.
+
+Kriterlerin göreceli önemleri, matematiksel tutarlılığı sağlamak amacıyla **Analitik Hiyerarşi Süreci (AHP)** yöntemiyle ağırlıklandırılmıştır. Geliştirilen algoritma, açık kaynaklı bir kredi değerlendirme modeli (German Credit Data) üzerinde test edilerek sistemin etik performansını temsil eden tek bir **Toplam Etik Uygunluk Puanı (1-5 arası)** hesaplamaktadır.
 
 ---
 
-## 2. System Architecture
+## 2. Sistem Mimarisi
 
-The application follows a modular architecture consisting of four primary layers:
-1.  **Data Layer:** Handles data ingestion (UCI Repository or CSV Upload), preprocessing (OneHotEncoding), and normalization.
-2.  **Model Layer:** Manages the `RandomForestClassifier` used for decision-making.
-3.  **Audit Layer (Ethics Engine):** Contains the core logic for Fairness (Statistical Parity), Transparency (Feature Importance), and Similarity (KNN) analysis.
-4.  **Presentation Layer:** A 7-Step Streamlit Wizard for configuration, visualization, and reporting.
+Uygulama 4 ana katmandan oluşan modüler bir yapıya sahiptir:
+1.  **Veri Katmanı:** Veri yükleme (UCI Repo veya CSV) ve ön işleme (Encoder/Scaler).
+2.  **Model Katmanı:** Karar mekanizması olarak `RandomForestClassifier` kullanılır.
+3.  **Denetim (Audit) Katmanı:** Adillik, Şeffaflık ve Benzerlik algoritmalarını çalıştırır.
+4.  **Sunum Katmanı:** 7 Adımlı Streamlit Arayüzü.
 
-### High-Level Architecture Diagram
+### Mimari Şema
 ```mermaid
 graph TD
-    subgraph Data_Layer [Data Layer]
+    subgraph Data_Layer [Veri Katmanı]
         D1[UCI Repository] -->|Ingest| P[Preprocessor]
         D2[CSV Upload] -->|Ingest| P
         P -->|Encoded Data| M[Model Training]
     end
 
-    subgraph Ethics_Engine [Audit Layer]
-        M -->|Predictions| F[Fairness Calculation]
-        M -->|Feature Weights| T[Transparency Analysis]
-        P -->|Feature Space| S[Similarity Analysis]
+    subgraph Ethics_Engine [Etik Motoru]
+        M -->|Tahminler| F[Adillik Hesabı]
+        M -->|Öznitelik Ağırlıkları| T[Şeffaflık Analizi]
+        P -->|Vektör Uzayı| S[Benzerlik Analizi]
     end
 
-    subgraph Scoring_System [Scoring Engine]
-        F --> CALC[Weighted Scoring Algorithm]
+    subgraph Scoring_System [Puanlama Motoru]
+        F --> CALC[AHP Ağırlıklı Skorlama]
         T --> CALC
         S --> CALC
     end
 
-    subgraph Application_Layer [Presentation Layer]
-        CALC --> DASH[Streamlit Dashboard]
-        DASH --> PDF[PDF Report Generator]
+    subgraph Application_Layer [Arayüz Katmanı]
+        CALC --> DASH[Streamlit Paneli]
+        DASH --> PDF[PDF Rapor Üretici]
     end
-
-    style Data_Layer fill:#f5f5f5,stroke:#333,stroke-width:1px
-    style Ethics_Engine fill:#e3f2fd,stroke:#1565c0,stroke-width:1px
-    style Scoring_System fill:#fff3e0,stroke:#ef6c00,stroke-width:1px
-    style Application_Layer fill:#e8f5e9,stroke:#2e7d32,stroke-width:1px
 ```
 
 ---
 
-## 3. Technical Specifications
+## 3. Adım Adım Çalışma Mantığı (Step-by-Step Workflow)
 
-The system is built on a Python-based stack, utilizing the following specific libraries:
+Sistem, kullanıcıyı 7 aşamalı bir "Sihirbaz" (Wizard) üzerinden yönlendirir. Her adımın detaylı işleyişi şöyledir:
 
-| Component | Technology | Description |
-|-----------|------------|-------------|
-| **Runtime** | Python 3.10+ | Core application runtime. |
-| **Frontend** | Streamlit | Web-based interactive dashboard (7 Steps). |
-| **Data Processing** | Pasdas, NumPy | Data manipulation and vector operations. |
-| **Machine Learning** | Scikit-Learn | `RandomForestClassifier` (Training) and `NearestNeighbors` (Similarity). |
-| **Reporting** | FPDF | Engine for programmatic PDF generation. |
-| **Data Source** | UCIMLRepo | API client for fetching the German Credit dataset. |
+### **Adım 1: Veri Yükleme (Data Loading)**
+*   **İşlem:** Kullanıcı isterse sistemdeki hazır "Alman Kredi Verisi"ni kullanır, isterse kendi CSV dosyasını yükler.
+*   **Arka Plan:** Veri `pandas` ile okunur. Kategorik veriler (Metin) sayısal verilere (0/1) dönüştürülür (`OneHotEncoding`). Sayısal veriler standartlaştırılır (`StandardScaler`).
 
----
+### **Adım 2: Veri İnceleme (Data Inspection)**
+*   **İşlem:** Yüklenen ham veri tablo olarak gösterilir.
+*   **Amaç:** Kullanıcının verinin doğru yüklendiğini ve sütunların düzgün göründüğünü teyit etmesini sağlamak.
 
-## 4. Algorithmic Methodology
+### **Adım 3: Model Eğitimi (Model Training)**
+*   **İşlem:** "Modeli Eğit" butonuna basılır.
+*   **Arka Plan:** `RandomForestClassifier` algoritması çalıştırılır. Model, başvuru sahibinin özelliklerine bakerek "Kredi Ver" veya "Verme" kararını öğrenir.
 
-### 4.1 Fairness Analysis
-The system evaluates **Statistical Parity Difference (SPD)**. This metric measures the difference in the acceptance rate between a privileged group (e.g., Male) and an unprivileged group (e.g., Female).
-*   **Formula:** $SPD = P(\hat{Y}=1 | A=Privileged) - P(\hat{Y}=1 | A=Unprivileged)$
-*   **Interpretation:** A value close to 0 indicates fairness.
+### **Adım 4: Benzerlik Analizi (Similarity Analysis)**
+*   **İşlem:** Sistem, birbirine tıpatıp benzeyen ancak sadece hassas özelliği (örn: Cinsiyet) farklı olan kişileri tarar.
+*   **Arka Plan:** `K-Nearest Neighbors (KNN)` algoritması kullanılır. Her birey için uzaydaki en yakın komşusu bulunur. Eğer model komşulara farklı karar verdiyse "Tutarsızlık" olarak işaretlenir.
 
-### 4.2 Transparency Analysis
-The system utilizes **Global Feature Importance** derived from the Random Forest model.
-*   **Method:** Mean Decrease in Impurity (MDI).
-*   **Validation:** If the model provides feature importance weights, it receives a Transparency score of 100. If identifying influential features fails (black box), it receives a penalty.
+### **Adım 5: AHP Ağırlıklandırma (Weighting)**
+*   **İşlem:** Kullanıcı; Adillik, Şeffaflık ve Benzerlik kriterlerine 1 ile 9 arasında önem puanı verir.
+*   **Arka Plan:** Verilen puanlar normalize edilir. Örn: Adillik %50, Şeffaflık %30, Benzerlik %20 gibi toplamı 100 olacak şekilde oranlanır.
 
-### 4.3 Similarity & Neighborhood Consistency
-The system employs the **K-Nearest Neighbors (KNN)** algorithm ($k=2$) to detect individual discrimination.
-*   **Process:**
-    1.  Standardize numeric features.
-    2.  Mask sensitive attributes (e.g., Sex) during distance calculation.
-    3.  Find the closest neighbor for the target individual.
-    4.  **Consistency Check:** If `Prediction(Target) != Prediction(Neighbor)`, it is flagged as a "Discordant Pair".
-*   **Metric:** Similarity Score is calculated as $(1 - \text{Discordant Rate}) \times 100$.
+### **Adım 6: Detaylı Analiz (Deep Dive)**
+*   **İşlem:** Tüm hesaplamaların detaylı grafikleri (Adillik farkı, Öznitelik önem düzeyleri vb.) sunulur.
+*   **Amaç:** Kullanıcının modelin iç yapısını ve nerede hata yaptığını görsel olarak anlaması.
 
-### 4.4 Scoring Logic (AHP)
-The Final Ethical Score (1-5 Stars) is calculated using a dynamic weighted average based on user input (Step 5).
-
-*   **Equation:**
-    $$ FinalScore = 1 + \frac{\text{WeightedSum}}{25} $$
-    $$ \text{WeightedSum} = \frac{(S_{Fair} \times W_{F}) + (S_{Transp} \times W_{T}) + (S_{Sim} \times W_{S})}{W_{Total}} $$
+### **Adım 7: Raporlama ve Final Skor (Reporting)**
+*   **İşlem:** 1-5 üzerinden hesaplanan Nihai Etik Skoru görüntülenir ve PDF Raporu indirilir.
+*   **Arka Plan:** Tüm metrikler ve ağırlıklar birleştirilir, PDF motoru (`fpdf`) ile dinamik bir doküman basılır.
 
 ---
 
-## 5. Deployment Instructions
+## 4. Algoritmik Metodoloji
 
-### Prerequisites
-*   Python 3.8 or higher.
-*   `pip` package manager.
+### 4.1 Adillik Analizi (Fairness)
+*   **Metrik:** İstatistiksel Parite Farkı (Statistical Parity Difference - SPD).
+*   **Mantık:** Avantajlı grup (örn: Erkek) ile dezavantajlı grubun (örn: Kadın) kredi onay oranları arasındaki farktır.
+*   **Formül:** `SPD = P(Onay|Erkek) - P(Onay|Kadın)`
+*   **Yorum:** Sonuç 0'a ne kadar yakınsa, model o kadar adildir.
 
-### Installation Steps
+### 4.2 Şeffaflık Analizi (Transparency)
+*   **Metrik:** Küresel Öznitelik Önemi (Global Feature Importance).
+*   **Mantık:** Model karar verirken hangi sütünlara (Yaş, Maaş vb.) ne kadar ağırlık verdiğini matematiksel olarak açıklar (Gini Impurity). Eğer model bu bilgiyi veremiyorsa "Kara Kutu" (Black Box) kabul edilir ve puan kırılır.
 
-1.  **Navigate to Project Directory:**
-    ```bash
-    cd bilgisayarprojenew
-    ```
+### 4.3 Benzerlik ve Tutarlılık (Similarity)
+*   **Metrik:** Komşuluk Tutarlılık Oranı.
+*   **Mantık:** Bireylerin en yakın komşularıyla aynı sonucu alıp almadığına bakılır. Benzer kişilere benzer sonuç çıkmalıdır.
 
-2.  **Install Dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+### 4.4 Puanlama Mantığı (Scoring)
+Nihai Etik Puan (1-5 Yıldız), belirlenen ağırlıklara göre şu formülle hesaplanır:
 
-3.  **Launch Application:**
-    ```bash
-    python -m streamlit run src/ui/app.py
-    ```
+1.  **Ağırlıklı Toplam:**
+    `WeightedSum = (AdillikPuanı * Ağırlık1) + (ŞeffaflıkPuanı * Ağırlık2) + (BenzerlikPuanı * Ağırlık3) / ToplamAğırlık`
+
+2.  **1-5 Skalasına Dönüşüm:**
+    `FinalSkor = 1 + (WeightedSum / 25)`
+
+*(Not: 0 puan 1 yıldıza, 100 puan 5 yıldıza denk gelir).*
 
 ---
 
-## 6. Verification Procedures
+## 5. Kurulum Rehberi
 
-To ensure mathematical integrity, a verification script (`verify_logic.py`) is provided. It performs independent implementation of the logic using standard NumPy operations.
+**Gereksinimler:** Python 3.8+
 
-**Execution:**
-```bash
-python verify_logic.py
-```
+1.  **Klasöre Girin:**
+    `cd bilgisayarprojenew`
 
-**Validation Criteria:**
-*   **Fairness Check:** System vs Manual Calculation ($< 1e-5$ tolerance).
-*   **Similarity Check:** System (KNN) vs Manual Euclidean Calculation.
-*   **Score Check:** System Formula vs Manual Formula.
+2.  **Kütüphaneleri Yükleyin:**
+    `pip install -r requirements.txt`
+
+3.  **Uygulamayı Başlatın:**
+    `python -m streamlit run src/ui/app.py`
+
+---
+
+## 6. Doğrulama (Verification)
+
+Hesaplamaların doğruluğunu kanıtlamak için, sistemin sonuçlarını manuel matematiksel işlemlerle karşılaştıran bir test betiği bulunmaktadır.
+
+**Çalıştırmak için:**
+`python verify_logic.py`
