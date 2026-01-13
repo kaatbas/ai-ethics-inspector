@@ -21,7 +21,7 @@ graph TD
     subgraph Data_Layer [Data Layer]
         D1[UCI Repository] -->|Ingest| P[Preprocessor]
         D2[CSV Upload] -->|Ingest| P
-        P -->|Encoded Data (X_proc)| M[Model Training]
+        P -->|Encoded Data| M[Model Training]
     end
 
     subgraph Ethics_Engine [Audit Layer]
