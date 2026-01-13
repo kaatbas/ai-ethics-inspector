@@ -52,30 +52,37 @@ graph TD
 The system guides the user through a 7-step "Wizard". The detailed logic for each step is as follows:
 
 ### **Step 1: Data Loading**
+![Step 1: Data Selection](assets/images/step1.png)
 *   **Action:** The user selects either the built-in "German Credit Data" or uploads a custom CSV.
 *   **Background:** Data is loaded via `pandas`. Categorical data is converted to numerical inputs (0/1) using `OneHotEncoding`. Numeric data is standardized via `StandardScaler`.
 
 ### **Step 2: Data Inspection**
+![Step 2: Data Preview](assets/images/step2.png)
 *   **Action:** The raw loaded data is displayed as a table.
 *   **Purpose:** Allows verification of successful data ingestion and column structure.
 
 ### **Step 3: Model Training**
+![Step 3: Training](assets/images/step3.png)
 *   **Action:** The user initiates the training process.
 *   **Background:** A `RandomForestClassifier` is trained. The model learns to predict creditworthiness based on applicant attributes.
 
 ### **Step 4: Similarity Analysis**
+![Step 4: Similarity Check](assets/images/step4.png)
 *   **Action:** The system scans for individuals who are identical in non-sensitive attributes but differ in a sensitive attribute (e.g., Sex).
 *   **Background:** Uses the `K-Nearest Neighbors (KNN)` algorithm. If the model assigns different outcomes to these "nearest neighbors", it is flagged as an inconsistency.
 
 ### **Step 5: AHP Weighting**
+![Step 5: AHP Sliders](assets/images/step5.png)
 *   **Action:** Validates the relative importance of Fairness, Transparency, and Similarity (1-9 scale).
 *   **Background:** Scores are normalized (e.g., Fairness 50%, Transparency 30%) to ensure they sum to 100%.
 
 ### **Step 6: Detailed Analysis**
+![Step 6: Analysis Dashboard](assets/images/step6.png)
 *   **Action:** Visualizations of all detailed calculations (Fairness disparity, Feature Importance charts, etc.) are presented.
 *   **Purpose:** To provide granular insight into the model's decision-making process.
 
 ### **Step 7: Reporting & Final Score**
+![Step 7: Final Report](assets/images/step7.png)
 *   **Action:** The Final Ethical Score (1-5) is displayed, and a PDF Report is generated.
 *   **Background:** All metrics and weights are aggregated, and a dynamic document is rendered using `fpdf`.
 
@@ -115,13 +122,19 @@ The Final Ethical Score (1-5 Stars) is calculated using the weighted average def
 **Requirements:** Python 3.8+
 
 1.  **Navigate to Directory:**
-    `cd bilgisayarprojenew`
+    ```bash
+    cd bilgisayarprojenew
+    ```
 
 2.  **Install Dependencies:**
-    `pip install -r requirements.txt`
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 3.  **Launch Application:**
-    `python -m streamlit run src/ui/app.py`
+    ```bash
+    python -m streamlit run src/ui/app.py
+    ```
 
 ---
 
@@ -130,4 +143,6 @@ The Final Ethical Score (1-5 Stars) is calculated using the weighted average def
 To verify the mathematical accuracy of the system, a script comparing system outputs against manual calculations is included.
 
 **Run Verification:**
-`python verify_logic.py`
+```bash
+python verify_logic.py
+```
