@@ -121,17 +121,12 @@ The Final Ethical Score (1-5 Stars) is calculated using the weighted average def
 
 **Requirements:** Python 3.8+
 
-1.  **Navigate to Directory:**
-    ```bash
-    cd bilgisayarprojenew
-    ```
-
-2.  **Install Dependencies:**
+1.  **Install Dependencies:**
     ```bash
     pip install -r requirements.txt
     ```
 
-3.  **Launch Application:**
+2.  **Launch Application:**
     ```bash
     python -m streamlit run src/ui/app.py
     ```
